@@ -1,0 +1,16 @@
+2026-05-02 19:09:43.524 +06:00 [WRN] No XML encryptor configured. Key {f66a204e-0aa9-4d9c-ac57-18d157513495} may be persisted to storage in unencrypted form.
+2026-05-02 19:09:48.511 +06:00 [INF] HTTP GET /health responded 200 in 16ms | IP=::1 | ClientId=anonymous | CorrelationId=63a29322-cc15-4b3b-b30c-2c513a541498
+2026-05-02 19:09:48.512 +06:00 [INF] HTTP GET /health responded 200 in 21.3157 ms
+2026-05-02 19:09:48.531 +06:00 [INF] HTTP GET /api/v1/currency/rates responded 401 in 4ms | IP=::1 | ClientId=anonymous | CorrelationId=f5def348-2d41-416e-995a-5f28d5dad786
+2026-05-02 19:09:48.531 +06:00 [INF] HTTP GET /api/v1/currency/rates responded 401 in 4.5752 ms
+2026-05-02 19:09:48.630 +06:00 [INF] HTTP POST /api/v1/auth/token responded 200 in 88ms | IP=::1 | ClientId=anonymous | CorrelationId=b9182d29-9bcf-4cbe-9cdf-0e48e43a6700
+2026-05-02 19:09:48.630 +06:00 [INF] HTTP POST /api/v1/auth/token responded 200 in 89.0948 ms
+2026-05-02 19:09:49.349 +06:00 [DBG] Fetching latest rates for EUR from https://api.frankfurter.app/latest?base=EUR
+2026-05-02 19:09:49.358 +06:00 [DBG] Resilience pipeline executing. Source: 'FrankfurterCurrencyProvider-frankfurter/', Operation Key: 'null'
+2026-05-02 19:09:50.380 +06:00 [INF] Execution attempt. Source: 'FrankfurterCurrencyProvider-frankfurter//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: 1017.0227ms
+2026-05-02 19:09:50.384 +06:00 [DBG] Resilience pipeline executed. Source: 'FrankfurterCurrencyProvider-frankfurter/', Operation Key: 'null', Result: '200', Execution Time: 1025.5455ms
+2026-05-02 19:09:50.400 +06:00 [INF] HTTP GET /api/v1/currency/rates responded 200 in 1093ms | IP=::1 | ClientId=anonymous | CorrelationId=baec289c-8d16-46c2-89c5-3ff879eacb24
+2026-05-02 19:09:50.401 +06:00 [INF] HTTP GET /api/v1/currency/rates responded 200 in 1093.5164 ms
+2026-05-02 19:09:50.419 +06:00 [WRN] Excluded currency attempted: Currency 'TRY' is not supported for conversion.
+2026-05-02 19:09:50.420 +06:00 [INF] HTTP GET /api/v1/currency/convert responded 400 in 7ms | IP=::1 | ClientId=anonymous | CorrelationId=1c5968fc-3b05-42df-86ca-c96dfb549ed3
+2026-05-02 19:09:50.420 +06:00 [INF] HTTP GET /api/v1/currency/convert responded 400 in 7.4692 ms
