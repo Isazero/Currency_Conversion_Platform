@@ -125,4 +125,28 @@ public class CurrencyApiIntegrationTests : IClassFixture<WebApplicationFactory<P
         Assert.True(response.Headers.Contains("X-Correlation-ID"));
         Assert.Equal("test-corr-123", response.Headers.GetValues("X-Correlation-ID").First());
     }
+
+    [Fact]
+    public async Task AdminInfo_Returns200_ForAdminRole()
+    {
+        var client = _factory.CreateClient();
+        var token = await GetTokenAsync(client, "admin", "Admin123!");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/v1/admin/info");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AdminInfo_Returns403_ForUserRole()
+    {
+        var client = _factory.CreateClient();
+        var token = await GetTokenAsync(client, "user", "User123!");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/v1/admin/info");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }
