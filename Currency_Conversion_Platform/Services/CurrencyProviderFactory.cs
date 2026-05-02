@@ -1,20 +1,15 @@
-namespace CurrencyConversionPlatform.Services;
+using CurrencyConversionPlatform.Services;
 
-public sealed class CurrencyProviderFactory : ICurrencyProviderFactory
+namespace Currency_Conversion_Platform.Services;
+
+public sealed class CurrencyProviderFactory(IEnumerable<ICurrencyProvider> providers) : ICurrencyProviderFactory
 {
-    private readonly IEnumerable<ICurrencyProvider> _providers;
-
-    public CurrencyProviderFactory(IEnumerable<ICurrencyProvider> providers)
-    {
-        _providers = providers;
-    }
-
     public ICurrencyProvider GetProvider(string? providerName = null)
     {
         if (providerName is null)
-            return _providers.First();
+            return providers.First();
 
-        var provider = _providers.FirstOrDefault(p =>
+        var provider = providers.FirstOrDefault(p =>
             p.ProviderName.Equals(providerName, StringComparison.OrdinalIgnoreCase));
 
         return provider ?? throw new InvalidOperationException($"Provider '{providerName}' not found.");

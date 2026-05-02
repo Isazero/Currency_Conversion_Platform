@@ -1,6 +1,2 @@
 namespace CurrencyConversionPlatform.Models;
-public sealed class ExcludedCurrencyException : Exception
-{
-    public ExcludedCurrencyException(string currency)
-        : base($"Currency '{currency}' is not supported for conversion.") { }
-}
+public sealed class ExcludedCurrencyException(string currency) : Exception($"Currency '{currency}' is not supported for conversion.");

@@ -5,41 +5,32 @@ using Microsoft.Extensions.Options;
 
 namespace CurrencyConversionPlatform.Services;
 
-public sealed class CachingCurrencyProvider : ICurrencyProvider
+public sealed class CachingCurrencyProvider(
+    ICurrencyProvider inner,
+    IMemoryCache cache,
+    IOptions<FrankfurterOptions> options) : ICurrencyProvider
 {
-    private readonly ICurrencyProvider _inner;
-    private readonly IMemoryCache _cache;
-    private readonly TimeSpan _cacheDuration;
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromSeconds(options.Value.CacheDurationSeconds);
 
-    public string ProviderName => _inner.ProviderName;
-
-    public CachingCurrencyProvider(
-        ICurrencyProvider inner,
-        IMemoryCache cache,
-        IOptions<FrankfurterOptions> options)
-    {
-        _inner = inner;
-        _cache = cache;
-        _cacheDuration = TimeSpan.FromSeconds(options.Value.CacheDurationSeconds);
-    }
+    public string ProviderName => inner.ProviderName;
 
     public Task<ExchangeRatesResponse> GetLatestRatesAsync(string baseCurrency, CancellationToken ct = default)
     {
         var key = $"latest:{baseCurrency}";
-        return _cache.GetOrCreateAsync(key, entry =>
+        return cache.GetOrCreateAsync(key, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-            return _inner.GetLatestRatesAsync(baseCurrency, ct);
+            return inner.GetLatestRatesAsync(baseCurrency, ct);
         })!;
     }
 
     public Task<ExchangeRatesResponse> ConvertAsync(string from, string to, decimal amount, CancellationToken ct = default)
     {
         var key = $"convert:{from}:{to}:{amount}";
-        return _cache.GetOrCreateAsync(key, entry =>
+        return cache.GetOrCreateAsync(key, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-            return _inner.ConvertAsync(from, to, amount, ct);
+            return inner.ConvertAsync(from, to, amount, ct);
         })!;
     }
 
@@ -47,10 +38,10 @@ public sealed class CachingCurrencyProvider : ICurrencyProvider
         string baseCurrency, DateOnly startDate, DateOnly endDate, CancellationToken ct = default)
     {
         var key = $"history:{baseCurrency}:{startDate}:{endDate}";
-        return _cache.GetOrCreateAsync(key, entry =>
+        return cache.GetOrCreateAsync(key, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-            return _inner.GetHistoricalRatesAsync(baseCurrency, startDate, endDate, ct);
+            return inner.GetHistoricalRatesAsync(baseCurrency, startDate, endDate, ct);
         })!;
     }
 }

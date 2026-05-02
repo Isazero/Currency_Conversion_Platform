@@ -40,3 +40,8 @@ appsettings.Secrets.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Node / frontend
+node_modules/
+dist/
+.npm/

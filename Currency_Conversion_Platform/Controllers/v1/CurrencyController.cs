@@ -10,17 +10,8 @@ namespace CurrencyConversionPlatform.Controllers.v1;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/currency")]
 [Authorize]
-public sealed class CurrencyController : ControllerBase
+public sealed class CurrencyController(CurrencyService service, ILogger<CurrencyController> logger) : ControllerBase
 {
-    private readonly CurrencyService _service;
-    private readonly ILogger<CurrencyController> _logger;
-
-    public CurrencyController(CurrencyService service, ILogger<CurrencyController> logger)
-    {
-        _service = service;
-        _logger = logger;
-    }
-
     [HttpGet("rates")]
     [ProducesResponseType(typeof(ExchangeRatesResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLatestRates(
@@ -28,7 +19,7 @@ public sealed class CurrencyController : ControllerBase
     {
         try
         {
-            var rates = await _service.GetLatestRatesAsync(@base, ct);
+            var rates = await service.GetLatestRatesAsync(@base, ct);
             return Ok(rates);
         }
         catch (HttpRequestException ex)
@@ -46,17 +37,17 @@ public sealed class CurrencyController : ControllerBase
     {
         try
         {
-            var result = await _service.ConvertAsync(from, to, amount, ct);
+            var result = await service.ConvertAsync(from, to, amount, ct);
             return Ok(result);
         }
         catch (ExcludedCurrencyException ex)
         {
-            _logger.LogWarning("Excluded currency attempted: {Message}", ex.Message);
+            logger.LogWarning("Excluded currency attempted: {Message}", ex.Message);
             return BadRequest(new { error = ex.Message });
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogWarning("Upstream error during conversion: {Message}", ex.Message);
+            logger.LogWarning("Upstream error during conversion: {Message}", ex.Message);
             return BadRequest(new { error = $"Invalid currency code or upstream error: {ex.StatusCode}" });
         }
     }
@@ -76,7 +67,7 @@ public sealed class CurrencyController : ControllerBase
 
         try
         {
-            var result = await _service.GetHistoricalRatesAsync(@base, startDate, endDate, page, pageSize, ct);
+            var result = await service.GetHistoricalRatesAsync(@base, startDate, endDate, page, pageSize, ct);
             return Ok(result);
         }
         catch (HttpRequestException ex)

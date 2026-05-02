@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using Currency_Conversion_Platform.Services;
 using CurrencyConversionPlatform.Configuration;
 using CurrencyConversionPlatform.Data;
 using CurrencyConversionPlatform.Infrastructure;

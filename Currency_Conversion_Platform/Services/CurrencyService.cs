@@ -2,22 +2,15 @@ using CurrencyConversionPlatform.Models;
 
 namespace CurrencyConversionPlatform.Services;
 
-public class CurrencyService
+public class CurrencyService(ICurrencyProviderFactory factory)
 {
     private static readonly HashSet<string> ExcludedCurrencies =
         new(StringComparer.OrdinalIgnoreCase) { "TRY", "PLN", "THB", "MXN" };
 
-    private readonly ICurrencyProviderFactory _factory;
-
-    public CurrencyService(ICurrencyProviderFactory factory)
-    {
-        _factory = factory;
-    }
-
     public virtual async Task<ExchangeRatesResponse> GetLatestRatesAsync(
         string baseCurrency, CancellationToken ct = default)
     {
-        return await _factory.GetProvider().GetLatestRatesAsync(baseCurrency, ct);
+        return await factory.GetProvider().GetLatestRatesAsync(baseCurrency, ct);
     }
 
     public virtual async Task<ConversionResponse> ConvertAsync(
@@ -26,7 +19,7 @@ public class CurrencyService
         if (ExcludedCurrencies.Contains(from)) throw new ExcludedCurrencyException(from);
         if (ExcludedCurrencies.Contains(to)) throw new ExcludedCurrencyException(to);
 
-        var rates = await _factory.GetProvider().ConvertAsync(from, to, amount, ct);
+        var rates = await factory.GetProvider().ConvertAsync(from, to, amount, ct);
         var convertedAmount = rates.Rates.TryGetValue(to, out var rate) ? rate : 0m;
         var rateValue = amount > 0 ? convertedAmount / amount : 0m;
 
@@ -37,7 +30,7 @@ public class CurrencyService
         string baseCurrency, DateOnly startDate, DateOnly endDate,
         int page, int pageSize, CancellationToken ct = default)
     {
-        var historical = await _factory.GetProvider().GetHistoricalRatesAsync(baseCurrency, startDate, endDate, ct);
+        var historical = await factory.GetProvider().GetHistoricalRatesAsync(baseCurrency, startDate, endDate, ct);
 
         var allEntries = historical.Rates
             .OrderBy(kv => kv.Key)
