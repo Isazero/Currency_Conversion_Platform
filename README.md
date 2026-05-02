@@ -248,11 +248,11 @@ AI was used throughout the project as a **collaborative implementation assistant
 ## Potential Future Improvements
 
 - **Additional currency providers** — the `ICurrencyProvider` / `ICurrencyProviderFactory` design makes this a matter of implementing the interface and registering the new provider; no existing code changes required
-- **Redis distributed cache** — replace `IMemoryCache` with `IDistributedCache` for horizontal scaling
-- **Refresh token flow** — extend the auth model with refresh tokens and token rotation
-- **User registration endpoint** — currently users are seeded; a proper `POST /auth/register` would complete the auth model
-- **Frontend tests** — Vitest + React Testing Library for `LoginPage` (auth flow), `ConvertPage` (excluded currency error), and `HistoryPage` (pagination controls)
-- **OpenTelemetry** — replace custom `RequestLoggingMiddleware` with OTEL traces exported to Jaeger/Zipkin for distributed tracing
-- **GitHub Actions CI** — the workflow skeleton in the CI/CD section above can be dropped in directly
-- **PostgreSQL** — production-grade persistence; EF Core migration is the only change needed
-- **HTTPS enforcement** — add HSTS and redirect middleware for production deployments
+- **Redis distributed cache** — replace `IMemoryCache` with `IDistributedCache` for horizontal scaling; the `CachingCurrencyProvider` decorator isolates this concern so the swap is straightforward
+- **Refresh token flow** — extend the auth model with refresh tokens and token rotation; JWT expiry is 24 h in dev, which is sufficient for this scope
+- **User registration endpoint** — currently users are seeded at startup; a proper `POST /api/v1/auth/register` would complete the auth model for self-service signup
+- **Frontend tests for RatesPage and HistoryPage** — `LoginPage`, `ProtectedRoute`, and `ConvertPage` are covered; adding tests for `RatesPage` (rate table rendering) and `HistoryPage` (pagination controls, empty state) would reach full frontend coverage
+- **OpenTelemetry** — replace the custom `RequestLoggingMiddleware` with OTEL traces exported to Jaeger/Zipkin for distributed tracing and richer observability
+- **GitHub Actions CI** — the workflow skeleton in the CI/CD section above can be dropped in directly; no other changes needed
+- **PostgreSQL** — production-grade persistence; EF Core migration is the only required change (`opts.UseNpgsql(...)`)
+- **HTTPS enforcement** — add HSTS middleware and HTTP→HTTPS redirect for production deployments
