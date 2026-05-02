@@ -1,5 +1,42 @@
+# Build output
 bin/
 obj/
 /packages/
+out/
+
+# JetBrains / Rider
+.idea/
 riderModule.iml
 /_ReSharper.Caches/
+*.user
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+
+# Test results & coverage
+TestResults/
+coverage*/
+*.coverage
+*.coveragexml
+
+# .NET runtime artifacts
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+
+# Secrets / env
+.env
+.env.*
+secrets.json
+appsettings.Secrets.json
+
+# OS
+.DS_Store
+Thumbs.db
