@@ -245,6 +245,83 @@ AI was used throughout the project as a **collaborative implementation assistant
 
 ---
 
+## Horizontal Scaling
+
+The current setup is intentionally single-instance (suitable for this assessment). Three concrete changes are required before running multiple replicas:
+
+### 1. Replace in-process cache with Redis
+
+`CachingCurrencyProvider` currently uses `IMemoryCache`, which is per-process. Each replica caches independently, so cache misses are multiplied and TTLs diverge across nodes.
+
+**`Program.cs`** — swap the cache registration:
+```csharp
+// remove:
+builder.Services.AddMemoryCache();
+
+// add:
+builder.Services.AddStackExchangeRedisCache(opts =>
+    opts.Configuration = builder.Configuration.GetConnectionString("Redis"));
+```
+
+**`CachingCurrencyProvider.cs`** — change the injected type:
+```csharp
+// remove:
+private readonly IMemoryCache _cache;
+public CachingCurrencyProvider(ICurrencyProvider inner, IMemoryCache cache, ...)
+
+// add:
+private readonly IDistributedCache _cache;
+public CachingCurrencyProvider(ICurrencyProvider inner, IDistributedCache cache, ...)
+```
+
+Cache reads/writes change from `_cache.GetOrCreateAsync` to `_cache.GetAsync` / `_cache.SetAsync` with `DistributedCacheEntryOptions`. No other files change.
+
+### 2. Replace SQLite with PostgreSQL
+
+SQLite is file-based and single-writer; it cannot be shared across containers.
+
+**`Program.cs`** — one line:
+```csharp
+// remove:
+opts.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+
+// add:
+opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+```
+
+Add `Npgsql.EntityFrameworkCore.PostgreSQL` NuGet package. Re-run `dotnet ef migrations add` to generate a PostgreSQL-compatible migration. No model or service code changes.
+
+### 3. Replace in-process rate limiter with a distributed one
+
+`AddRateLimiter` (fixed-window) tracks request counts in local memory. With N replicas each client effectively gets N× the configured limit.
+
+Options:
+- **Redis + `AspNetCoreRateLimit`** package — stores counters in Redis, works across replicas
+- **API Gateway** (AWS API Gateway, Azure APIM, nginx) — offload rate limiting entirely before requests reach the app
+
+---
+
+## Environment Configuration
+
+| Environment | Config file | Activation |
+|---|---|---|
+| Development | `appsettings.Development.json` | `ASPNETCORE_ENVIRONMENT=Development` (default for `dotnet run`) |
+| Production | `appsettings.Production.json` | `ASPNETCORE_ENVIRONMENT=Production` |
+| Testing | *(no dedicated file)* | Overridden in `WebHostBuilder.ConfigureServices` |
+
+A dedicated `appsettings.Testing.json` is not present — the integration tests override the database connection directly in `WebApplicationFactory`:
+
+```csharp
+builder.ConfigureServices(services => {
+    services.Remove(services.Single(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>)));
+    services.AddDbContext<AppDbContext>(opts => opts.UseSqlite("Data Source=integration_test.db"));
+});
+```
+
+To formalise a `Testing` environment, add `appsettings.Testing.json` with a dedicated DB connection string and set `ASPNETCORE_ENVIRONMENT=Testing` in the test host builder — the override in `ConfigureServices` can then be removed.
+
+---
+
 ## Potential Future Improvements
 
 - **Additional currency providers** — the `ICurrencyProvider` / `ICurrencyProviderFactory` design makes this a matter of implementing the interface and registering the new provider; no existing code changes required
