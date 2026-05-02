@@ -26,8 +26,15 @@ public sealed class CurrencyController : ControllerBase
     public async Task<IActionResult> GetLatestRates(
         [FromQuery] string @base = "EUR", CancellationToken ct = default)
     {
-        var rates = await _service.GetLatestRatesAsync(@base, ct);
-        return Ok(rates);
+        try
+        {
+            var rates = await _service.GetLatestRatesAsync(@base, ct);
+            return Ok(rates);
+        }
+        catch (HttpRequestException ex)
+        {
+            return BadRequest(new { error = $"Invalid currency code or upstream error: {ex.StatusCode}" });
+        }
     }
 
     [HttpGet("convert")]
@@ -47,6 +54,11 @@ public sealed class CurrencyController : ControllerBase
             _logger.LogWarning("Excluded currency attempted: {Message}", ex.Message);
             return BadRequest(new { error = ex.Message });
         }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning("Upstream error during conversion: {Message}", ex.Message);
+            return BadRequest(new { error = $"Invalid currency code or upstream error: {ex.StatusCode}" });
+        }
     }
 
     [HttpGet("history")]
@@ -62,7 +74,14 @@ public sealed class CurrencyController : ControllerBase
         if (startDate == default) startDate = DateOnly.FromDateTime(DateTime.Today.AddMonths(-1));
         if (endDate == default) endDate = DateOnly.FromDateTime(DateTime.Today);
 
-        var result = await _service.GetHistoricalRatesAsync(@base, startDate, endDate, page, pageSize, ct);
-        return Ok(result);
+        try
+        {
+            var result = await _service.GetHistoricalRatesAsync(@base, startDate, endDate, page, pageSize, ct);
+            return Ok(result);
+        }
+        catch (HttpRequestException ex)
+        {
+            return BadRequest(new { error = $"Invalid currency code or upstream error: {ex.StatusCode}" });
+        }
     }
 }
